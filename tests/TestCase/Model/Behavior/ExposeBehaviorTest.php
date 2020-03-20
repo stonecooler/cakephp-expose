@@ -50,6 +50,21 @@ class ExposeBehaviorTest extends TestCase {
 	/**
 	 * @return void
 	 */
+	public function testMarshalFieldsConfig(): void {
+		$user = $this->Users->newEntity([
+			'name' => 'New User',
+			'created' => '2020-01-01',
+		], ['fields' => ['name']]);
+		$this->assertNotEmpty($user->uuid);
+
+		$this->assertNull($user->created);
+		$this->assertNull($user->modified);
+		$this->assertNotEmpty($user->name);
+	}
+
+	/**
+	 * @return void
+	 */
 	public function testBeforeSave(): void {
 		$this->Users->removeBehavior('Expose');
 		$this->Users->addBehavior('Expose.Expose', ['on' => 'beforeSave']);
@@ -73,10 +88,15 @@ class ExposeBehaviorTest extends TestCase {
 		$uuid = $user->uuid;
 
 		$field = $this->Users->getExposedKey();
+		$this->assertSame('uuid', $field);
+
 		/** @var \TestApp\Model\Entity\User $result */
 		$result = $this->Users->find('exposed', [$field => $uuid])->firstOrFail();
 
 		$this->assertSame($user->id, $result->id);
+
+		$field = $this->Users->getExposedKey(true);
+		$this->assertSame('Users.uuid', $field);
 	}
 
 	/**

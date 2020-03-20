@@ -79,10 +79,17 @@ class ExposeBehavior extends Behavior {
 	}
 
 	/**
+	 * @param bool $prefixed
+	 *
 	 * @return string
 	 */
-	public function getExposedKey(): string {
-		return $this->_table->getAlias().'.'.$this->getConfig('field');
+	public function getExposedKey(bool $prefixed = false): string {
+		$field = $this->getConfig('field');
+		if ($prefixed) {
+			$field = $this->getTable()->getAlias() . '.' . $field;
+		}
+
+		return $field;
 	}
 
 	/**
@@ -96,12 +103,12 @@ class ExposeBehavior extends Behavior {
 	 * @throws \InvalidArgumentException If the 'slug' key is missing in options
 	 */
 	public function findExposed(Query $query, array $options) {
-		$field = $this->getExposedKey();
+		$field = $this->getConfig('field');
 		if (empty($options[$field])) {
 			throw new InvalidArgumentException('The `' . $field . '` key is required for find(\'exposed\')');
 		}
 
-		return $query->where([$field => $options[$field]]);
+		return $query->where([$this->getTable()->getAlias() . '.' . $field => $options[$field]]);
 	}
 
 	/**
